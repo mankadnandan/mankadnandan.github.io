@@ -1,6 +1,0 @@
-name: My Site
-theme: minima
-highlighter: rouge
-markdown: kramdown
-kramdown:
-  input: GFM
