@@ -1,0 +1,65 @@
+<script src="https://rawcdn.githack.com/oscarmorrison/md-page/232e97938de9f4d79f4110f6cfd637e186b63317/md-page.js"></script><noscript>
+
+Assimilation of LSM-based Storage Techniques: A Survey
+==============
+
+Link to the white paper: https://arxiv.org/pdf/1812.07527
+
+## Abstract
+
+- LSM: Log-Structured Merge-Tree (LSM-Tree)
+
+- LSM Tree is a widely adopted for use in storage layer of modern NOSQL systems.
+
+- This paper provides a survey of recent research efforts on LSM-Tree, to understand the state-of-the-art in the LSM-based storage techniques.
+
+- This paper also surveys several representative LSM-based open soure NoSQL systems and discuss some future research direction.
+
+## Introduction
+
+- LSM Tree has been adopted in the storage in many modern NoSQL systems like
+    - BigTable
+    - Dynamo
+    - Hbase
+    - Cassandra
+    - Level DB
+    - Rocks DB
+    - Asterix DB
+
+- Different from traditional indexing structures which does an in-place updates, the LSM Tree first buffers all writes in memory and subsequently
+    flushest them to disk and merges them using sequential I/O (as opposed to Random I/O which does random access of the disks).
+
+- This buffer, flush and sequential merge brings number of advantages like:
+    - Superior write performance - Random access to disks (especially magnetic discs with head, as the head needs to be moved randomly which increases latency)
+
+    - High Space Utilization - Here the deleted / older values of updated records are generally purged during the merge which helps prevent the disk fragmentation and helps in space utilization.
+
+    - Tunability -
+
+    - Simplification of concurrency and recovery - Since the updates are not in-place, we don't need locks on records on disc. Concurrency needs to be managed only for in-memory structures.
+
+- As reported by FB in [Optimizing Space Amplification in RocksDB](https://www.cidrdb.org/cidr2017/papers/p82-dong-cidr17.pdf), Rocks DB, an LSM-Based key value store, alone has been used for following types of workloads:
+    - Real-time data processing
+    - Graph Processing
+    - Stream Processing
+    - OLTP Workloads
+
+- This paper attempts to provide a survey of recent efforts to improve the LSM-Tree, starting from a KV store setting with a single LSM Tree, to a more general database settings with secondary index.
+
+- This paper also surveys five representative LSM based open-source NoSQL systems:
+    - Level DB
+    - Rocks DB
+    - HBase
+    - Cassandra
+    - Astrerix DB
+
+## LSM-Tree Basics
+
+- This section mainly goes over three aspects:
+    - History of work on LSM-Trees
+    - Basic strucure of LSM-Tree as used in today's storage systems.
+    - Cost analysis of writes, reads and space utilization of LSM-trees.
+
+### History of LSM-Trees
+
+-
