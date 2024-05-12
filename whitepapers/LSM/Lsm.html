@@ -2,7 +2,7 @@
 
 <noscript>
 
-<a href="./whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
+<a href="../whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
 
 Assimilation of LSM-based Storage Techniques: A Survey
 ==============
@@ -107,6 +107,30 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
 
         - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
 
--
+- There were several key problems the Log-structured storage suffered, prior to LSM-Trees.
 
-<a href="./whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
+    - Storing data into append-only log would lead to low query performance, as related records are scattered across the logs.
+
+    - Also, due to obsolete records not yet been removed, there was a problem of low space utilization.
+
+    - Though various data re-organization processes were designed, <mark>there was no principled cost model to analyze the trade-off between the "write-cost", "the read-cost" and
+      "space-utilization".</mark> This caused the early log-structured storage hard to tune.
+
+- The LSM tree, proposed in 1996, addressed these problems by designing a <mark>merge process</mark> which is integrated into the structure itself, <mark>providing high write performance and bounded
+  query performance and space-utilization.</mark>
+
+- The original LSM-Tree design had sequence of components C<sub>0</sub>, C<sub>1</sub>, ... , C<sub>K</sub> as shown in the figure below.
+
+    <img src="./Original-LSM-Tree-Design.png">
+
+    - Each component is structured as a B<sup>+</sup> tree.
+
+    - C<sub>0</sub> resides in memory and served incoming writes, while all remaining components C<sub>1</sub>, ... , C<sub>K</sub> resides on disk.
+
+    -
+
+
+
+
+
+<a href="../whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
