@@ -1,65 +1,113 @@
-<script src="https://rawcdn.githack.com/oscarmorrison/md-page/232e97938de9f4d79f4110f6cfd637e186b63317/md-page.js"></script><noscript>
+<script src="https://rawcdn.githack.com/oscarmorrison/md-page/232e97938de9f4d79f4110f6cfd637e186b63317/md-page.js"></script>
 
-Assimilation of LSM-based Storage Techniques: A Survey
-==============
+<noscript>
 
-Link to the white paper: https://arxiv.org/pdf/1812.07527
+    <a href="./whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
 
-## Abstract
+    Assimilation of LSM-based Storage Techniques: A Survey
+    ==============
 
-- LSM: Log-Structured Merge-Tree (LSM-Tree)
+    Link to the white paper: https://arxiv.org/pdf/1812.07527
 
-- LSM Tree is a widely adopted for use in storage layer of modern NOSQL systems.
+    ## Abstract
 
-- This paper provides a survey of recent research efforts on LSM-Tree, to understand the state-of-the-art in the LSM-based storage techniques.
+    - LSM: Log-Structured Merge-Tree (LSM-Tree)
 
-- This paper also surveys several representative LSM-based open soure NoSQL systems and discuss some future research direction.
+    - LSM Tree is a widely adopted for use in storage layer of modern NOSQL systems.
 
-## Introduction
+    - This paper provides a survey of recent research efforts on LSM-Tree, to understand the state-of-the-art in the LSM-based storage techniques.
 
-- LSM Tree has been adopted in the storage in many modern NoSQL systems like
-    - BigTable
-    - Dynamo
-    - Hbase
-    - Cassandra
-    - Level DB
-    - Rocks DB
-    - Asterix DB
+    - This paper also surveys several representative LSM-based open soure NoSQL systems and discuss some future research direction.
 
-- Different from traditional indexing structures which does an in-place updates, the LSM Tree first buffers all writes in memory and subsequently
-    flushest them to disk and merges them using sequential I/O (as opposed to Random I/O which does random access of the disks).
+    ## Introduction
 
-- This buffer, flush and sequential merge brings number of advantages like:
-    - Superior write performance - Random access to disks (especially magnetic discs with head, as the head needs to be moved randomly which increases latency)
+    - LSM Tree has been adopted in the storage in many modern NoSQL systems like
+        - BigTable
+        - Dynamo
+        - Hbase
+        - Cassandra
+        - Level DB
+        - Rocks DB
+        - Asterix DB
 
-    - High Space Utilization - Here the deleted / older values of updated records are generally purged during the merge which helps prevent the disk fragmentation and helps in space utilization.
+    - Different from traditional indexing structures which does an in-place updates, the LSM Tree first buffers all writes in memory and subsequently
+        flushest them to disk and merges them using sequential I/O (as opposed to Random I/O which does random access of the disks).
 
-    - Tunability -
+    - This buffer, flush and sequential merge brings number of advantages like:
+        - Superior write performance - Random access to disks (especially magnetic discs with head, as the head needs to be moved randomly which increases latency)
 
-    - Simplification of concurrency and recovery - Since the updates are not in-place, we don't need locks on records on disc. Concurrency needs to be managed only for in-memory structures.
+        - High Space Utilization - Here the deleted / older values of updated records are generally purged during the merge which helps prevent the disk fragmentation and helps in space utilization.
 
-- As reported by FB in [Optimizing Space Amplification in RocksDB](https://www.cidrdb.org/cidr2017/papers/p82-dong-cidr17.pdf), Rocks DB, an LSM-Based key value store, alone has been used for following types of workloads:
-    - Real-time data processing
-    - Graph Processing
-    - Stream Processing
-    - OLTP Workloads
+        - Tunability -
 
-- This paper attempts to provide a survey of recent efforts to improve the LSM-Tree, starting from a KV store setting with a single LSM Tree, to a more general database settings with secondary index.
+        - Simplification of concurrency and recovery - Since the updates are not in-place, we don't need locks on records on disc. Concurrency needs to be managed only for in-memory structures.
 
-- This paper also surveys five representative LSM based open-source NoSQL systems:
-    - Level DB
-    - Rocks DB
-    - HBase
-    - Cassandra
-    - Astrerix DB
+    - As reported by FB in [Optimizing Space Amplification in RocksDB](https://www.cidrdb.org/cidr2017/papers/p82-dong-cidr17.pdf), Rocks DB, an LSM-Based key value store, alone has been used for following types of workloads:
+        - Real-time data processing
+        - Graph Processing
+        - Stream Processing
+        - OLTP Workloads
 
-## LSM-Tree Basics
+    - This paper attempts to provide a survey of recent efforts to improve the LSM-Tree, starting from a KV store setting with a single LSM Tree, to a more general database settings with secondary index.
 
-- This section mainly goes over three aspects:
-    - History of work on LSM-Trees
-    - Basic strucure of LSM-Tree as used in today's storage systems.
-    - Cost analysis of writes, reads and space utilization of LSM-trees.
+    - This paper also surveys five representative LSM based open-source NoSQL systems:
+        - Level DB
+        - Rocks DB
+        - HBase
+        - Cassandra
+        - Astrerix DB
 
-### History of LSM-Trees
+    ## LSM-Tree Basics
 
--
+    - This section mainly goes over three aspects:
+
+        - History of work on LSM-Trees
+
+        - Basic structure of LSM-Tree as used in today's storage systems.
+
+        - Cost analysis of writes, reads and space utilization of LSM-trees.
+
+    ### History of LSM-Trees
+
+    - Index structure can choose one of two strategies to handle update:
+
+        - In-place Updates
+
+            - Here, like B+ tree, the structure directly overwrites the old records to store new updates.
+
+                - These structures are often read optimized, as only the most recent version of each record is stored.
+
+                - However, this design sacrifices write performance as the in-place updates incurs random I/Os first to find the record and then update it.
+                  [Typically, in a rotating disc, for a random IO the head needs to come on a place from where the data needs to be read. This is generally slow. It should be
+                  noted that this might not be a big concern in the state-of-the-art SSD drives as there is no physical head movement in it.]
+
+                - Also, this can reduce space utilization as the deletes and updates would cause fragmentation in memory.
+
+        - Out-of-place Updates
+
+            - Like LSM tree, these always stores updates in new location instead of overwriting old entries.
+
+                - This design improves write performance since it can exploit sequential I/O to handle writes.
+
+                - It can also simplify recovery process by not overwriting older data.
+
+                - Though, a major problem with this is that the read performance is sacrificed as the value can be stored in any of the multiple locations.
+                  [Typically, in a level based storage the algorithm might have to go multiple level up to find a particular record, as it might not be always stored in the
+                  leaf page]
+
+                - Also, these structures generally requires data re-organization process to improve storage and query efficiency.
+
+    - The idea of sequential, out-of-place update is not new and has been applied in database systems since 1970. It has been used in "Differential Files" paper and also in
+      "Postgres Project".
+
+        - In the Postgres Project, the idea of <mark>"Log-Structured Database Storage"</mark> was pioneered.
+
+            - In this, all writes were appended into a sequential log, enabling fast recovery (because, we don't over-write the record) and time-travel queries (again since
+              we have the previous data available.)
+
+            - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
+
+    -
+
+    <a href="./whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
+</noscript>
