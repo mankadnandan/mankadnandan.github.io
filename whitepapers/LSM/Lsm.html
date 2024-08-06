@@ -31,16 +31,18 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
     - Asterix DB
 
 - Different from traditional indexing structures which does an in-place updates, the LSM Tree first buffers all writes in memory and subsequently
-    flushest them to disk and merges them using sequential I/O (as opposed to Random I/O which does random access of the disks).
+    flushes them to disk and merges them using sequential I/O (as opposed to Random I/O which does random access of the disks, which are slow).
 
 - This buffer, flush and sequential merge brings number of advantages like:
     - Superior write performance - Random access to disks (especially magnetic discs with head, as the head needs to be moved randomly which increases latency)
 
     - High Space Utilization - Here the deleted / older values of updated records are generally purged during the merge which helps prevent the disk fragmentation and helps in space utilization.
 
-    - Tunability -
+    - Tunability - LSM trees offer tunable parameters that allow users to adjust various aspects of the data structure to suit specific workload requirements.
+        Parameters such as buffer size, merge thresholds, and compaction strategies can be fine-tuned to optimize performance for different use cases.
 
     - Simplification of concurrency and recovery - Since the updates are not in-place, we don't need locks on records on disc. Concurrency needs to be managed only for in-memory structures.
+        Also, since LSM tree uses sequential I/O and flushes the buffers on disk, it uses immutable data-structures which further simplifies the concurrency control.
 
 - As reported by FB in [Optimizing Space Amplification in RocksDB](https://www.cidrdb.org/cidr2017/papers/p82-dong-cidr17.pdf), Rocks DB, an LSM-Based key value store, alone has been used for following types of workloads:
     - Real-time data processing
@@ -69,17 +71,17 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
 
 ### History of LSM-Trees
 
-- Index structure can choose one of two strategies to handle update:
+- Index structure can choose one of two strategies to handle updates:
 
     - In-place Updates
 
-        - Here, like B+ tree, the structure directly overwrites the old records to store new updates.
+        - Here, like B<sup>+</sup> tree, the structure directly overwrites the old records to store new updates.
 
             - These structures are often read optimized, as only the most recent version of each record is stored.
 
             - However, this design sacrifices write performance as the in-place updates incurs random I/Os first to find the record and then update it.
-              [Typically, in a rotating disc, for a random IO the head needs to come on a place from where the data needs to be read. This is generally slow. It should be
-              noted that this might not be a big concern in the state-of-the-art SSD drives as there is no physical head movement in it.]
+              [*`NM - Typically, in a rotating disc, for a random IO the head needs to come on a place from where the data needs to be read. This is generally slow. It should be
+              noted that this might not be a big concern in the state-of-the-art SSD drives as there is no physical head movement in it.`*]
 
             - Also, this can reduce space utilization as the deletes and updates would cause fragmentation in memory.
 
@@ -92,20 +94,20 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
             - It can also simplify recovery process by not overwriting older data.
 
             - Though, a major problem with this is that the read performance is sacrificed as the value can be stored in any of the multiple locations.
-              [Typically, in a level based storage the algorithm might have to go multiple level up to find a particular record, as it might not be always stored in the
-              leaf page]
+              [*`NM - Typically, in a level based storage the algorithm might have to go multiple level up to find a particular record, as it might not be always stored in the
+              leaf page`*]
 
             - Also, these structures generally requires data re-organization process to improve storage and query efficiency.
 
 - The idea of sequential, out-of-place update is not new and has been applied in database systems since 1970. It has been used in "Differential Files" paper and also in
   "Postgres Project".
 
-    - In the Postgres Project, the idea of <mark>"Log-Structured Database Storage"</mark> was pioneered.
+        - In the Postgres Project, the idea of <mark>"Log-Structured Database Storage"</mark> was pioneered.
 
-        - In this, all writes were appended into a sequential log, enabling fast recovery (because, we don't over-write the record) and time-travel queries (again since
-          we have the previous data available.)
+            - In this, all writes were appended into a sequential log, enabling fast recovery (because, we don't over-write the record) and time-travel queries (again since
+              we have the previous data available.)
 
-        - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
+            - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
 
 - There were several key problems the Log-structured storage suffered, prior to LSM-Trees.
 
@@ -126,6 +128,9 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
     - Each component is structured as a B<sup>+</sup> tree.
 
     - C<sub>0</sub> resides in memory and served incoming writes, while all remaining components C<sub>1</sub>, ... , C<sub>K</sub> resides on disk.
+
+    - When C<sub>i</sub> is full, a rolling merge process is triggered which merges the range of leaf pages from C<sub>i</sub> into C<sub>i+1</sub>. This is called leveling merge policy.
+      However, this rolling merge process is not used in today's LSM due to its implementation complexity (we shall see the "why" later).
 
     -
 
