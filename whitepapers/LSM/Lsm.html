@@ -80,7 +80,7 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
             - These structures are often read optimized, as only the most recent version of each record is stored.
 
             - However, this design sacrifices write performance as the in-place updates incurs random I/Os first to find the record and then update it.
-              [*`NM - Typically, in a rotating disc, for a random IO the head needs to come on a place from where the data needs to be read. This is generally slow. It should be
+              [*`NOTE - Typically, in a rotating disc, for a random IO the head needs to come on a place from where the data needs to be read. This is generally slow. It should be
               noted that this might not be a big concern in the state-of-the-art SSD drives as there is no physical head movement in it.`*]
 
             - Also, this can reduce space utilization as the deletes and updates would cause fragmentation in memory.
@@ -94,7 +94,7 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
             - It can also simplify recovery process by not overwriting older data.
 
             - Though, a major problem with this is that the read performance is sacrificed as the value can be stored in any of the multiple locations.
-              [*`NM - Typically, in a level based storage the algorithm might have to go multiple level up to find a particular record, as it might not be always stored in the
+              [*`NOTE - Typically, in a level based storage the algorithm might have to go multiple level up to find a particular record, as it might not be always stored in the
               leaf page`*]
 
             - Also, these structures generally requires data re-organization process to improve storage and query efficiency.
@@ -102,16 +102,16 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
 - The idea of sequential, out-of-place update is not new and has been applied in database systems since 1970. It has been used in "Differential Files" paper and also in
   "Postgres Project".
 
-        - In the Postgres Project, the idea of <mark>"Log-Structured Database Storage"</mark> was pioneered.
+    - In the Postgres Project, the idea of <mark>"Log-Structured Database Storage"</mark> was pioneered.
 
-            - In this, all writes were appended into a sequential log, enabling fast recovery (because, we don't over-write the record) and time-travel queries (again since
-              we have the previous data available.)
+        - In this, all writes were appended into a sequential log, enabling fast recovery (because, we don't over-write the record) and time-travel queries (again since
+          we have the previous data available.)
 
-            - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
+        - It used a background process called "vacuum cleaner" to continuously garbage collect obsolete records from the log.
 
 - There were several key problems the Log-structured storage suffered, prior to LSM-Trees.
 
-    - Storing data into append-only log would lead to low query performance, as related records are scattered across the logs.
+    - Storing data into append-only log would lead to low query (read) performance, as related records are scattered across the logs.
 
     - Also, due to obsolete records not yet been removed, there was a problem of low space utilization.
 
@@ -119,7 +119,7 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
       "space-utilization".</mark> This caused the early log-structured storage hard to tune.
 
 - The LSM tree, proposed in 1996, addressed these problems by designing a <mark>merge process</mark> which is integrated into the structure itself, <mark>providing high write performance and bounded
-  query performance and space-utilization.</mark>
+  query (read) performance and space-utilization.</mark>
 
 - The original LSM-Tree design had sequence of components C<sub>0</sub>, C<sub>1</sub>, ... , C<sub>K</sub> as shown in the figure below.
 
@@ -132,7 +132,34 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
     - When C<sub>i</sub> is full, a rolling merge process is triggered which merges the range of leaf pages from C<sub>i</sub> into C<sub>i+1</sub>. This is called leveling merge policy.
       However, this rolling merge process is not used in today's LSM due to its implementation complexity (we shall see the "why" later).
 
-    -
+    - The original paper also showed that under a stable workload, where the number of levels remain static, write performance is optimized when the size ratios T<sub>i</sub> = |C<sub>i+1</sub>|/|C<sub>i</sub>|
+      between all adjacent components are the same.
+      [*`NOTE - Here the stable workload means that the rate of incoming writes (inserts, updates, deletes) is relatively constant over time. This stability means that the system has reached a steady state where
+      the data growth rate is predictable, and the background processes such as merging and compaction of data levels can proceed without significant fluctuations in workload intensity.
+      When the workload is stable, the number of levels in the LSM-tree tends to stabilize as well. This is because the frequency and size of merges (compactions) between different levels of the LSM-tree adjust to the
+      incoming write rate, allowing the system to maintain a balanced state. In this steady state, the system can more efficiently manage resources, such as memory and disk I/O, leading to optimized performance.`*]
+
+    - In parallel to the LSM-tree, Jagadish et al. proposed a similar structure with the stepped-merge policy to achieve better write performance.
+      It organizes the components into levels, and when level L is full with T components, these T components are merged together into a new component at level L+1.
+      This policy become the tiering merge policy used in today’s LSM-tree implementations.
+      [*`NOTE - Most important thing to understand here is the difference between rolling merge and stepped / tiering merge. In rolling merge, there was only one SSTable at
+         each level, and as that level is full we merge it with the L+1 level. The problem in keeping only one SSTable at each level is that there will be frequent merges which requires frequent disk I/O.
+         Also, there will be write amplification, which means that one level getting to full size, would trigger multiple merges all the way up to the top level. So the tiering merge policy
+         introduced T components at each level, which causes fewer merges and hence fewer disk I/O. This improved write performance.
+         It is important to understand that though it improves write performance, since we keep T SSTables unmerged, we need to search all of them which during reads. This affects reads performance to be slow.
+         Also, each level contains T component, but the size of each component at a level is T times compared to the size at the previous level. So if write performance is critical, tiered merge policy is better,
+         but if read performance is also critical, rolling / leveling merge policy (with one sstable per level) is more suitable.`*]
+
+## Todays LSM-trees
+### Basic Structure
+
+- Todays LSM-tree implementations still apply updates out-of-place to reduce random I/Os.
+
+- An insert or update operation simply adds a new entry, while a delete operation adds an anti-matter entry indicating that a key has been deleted.
+
+
+
+
 
 
 
