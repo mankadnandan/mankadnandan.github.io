@@ -145,7 +145,7 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
       [*`NOTE - Most important thing to understand here is the difference between rolling merge and stepped / tiering merge. In rolling merge, there was only one SSTable at
          each level, and as that level is full we merge it with the L+1 level. The problem in keeping only one SSTable at each level is that there will be frequent merges which requires frequent disk I/O.
          Also, there will be write amplification, which means that one level getting to full size, would trigger multiple merges all the way up to the top level. So the tiering merge policy
-         introduced T components at each level, which causes fewer merges and hence fewer disk I/O. This improved write performance.
+         introduced T components at each level,  causes fewer merges and hence fewer disk I/O. This improved write performance.
          It is important to understand that though it improves write performance, since we keep T SSTables unmerged, we need to search all of them which during reads. This affects reads performance to be slow.
          Also, each level contains T component, but the size of each component at a level is T times compared to the size at the previous level. So if write performance is critical, tiered merge policy is better,
          but if read performance is also critical, rolling / leveling merge policy (with one sstable per level) is more suitable.`*]
@@ -157,9 +157,10 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
 
 - An insert or update operation simply adds a new entry, while a delete operation adds an anti-matter entry indicating that a key has been deleted.
 
+- Todays LSM tree exploits the immutability of disk components to simplify concurrency control and recovery. Multiple disc components are merged together into a "new" one without modifying the existing components.
+  This is different from the rolling merge process proposed in the original LSM-tree.
 
-
-
+-
 
 
 
