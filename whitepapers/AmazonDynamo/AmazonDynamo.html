@@ -6,5 +6,30 @@
 
 Assimilation of Dynamo: Amazons Highly Available Key-value Store
 ==============
+Link to the white paper: https://arxiv.org/pdf/1812.07527
+
+## Abstract
+
+- Reliability is very important at massive scale at which Amazon operates. Even a slightest outage causes significant financial consequences and impacts customer
+  trust.
+
+- Amazon.com, the e-commerce site, runs on top of an infrastructure which consists of tens of thousands of servers and network components, spread across many data centers
+  across the world.
+
+- At this scale of operations, it is to be assumed that small and large components continuously fail.
+
+- The way the <mark>persistent state</mark> is managed in face of these failures, drives the scalability and the reliability of the software systems.
+
+- This paper presents Dynamo, a highly available Key-Value storage system, that some core services of Amazon uses to provide an "always-on" experience.
+
+- To achieve high availability:
+        - Dynamo sacrifices Consistency, under certain failure scenarios.
+        - It makes extensive use of object versioning.
+        - Application-assisted conflict resolution.
+
+## Introduction
+-
+
+
 
 <a href="../whitepapers.html" style="text-decoration:none;">&#x1F519;</a>&nbsp; &nbsp;</br></br>
