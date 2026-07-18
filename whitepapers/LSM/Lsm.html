@@ -160,9 +160,15 @@ Link to the white paper: https://arxiv.org/pdf/1812.07527
 - Todays LSM tree exploits the immutability of disk components to simplify concurrency control and recovery. Multiple disc components are merged together into a "new" one without modifying the existing components.
   This is different from the rolling merge process proposed in the original LSM-tree.
 
--
+- Internally, an LSM-tree component can be implemented using any index structure.
 
+- Todays LSM-tree implementations typically organize their memory components using a concurrent data structure such as a skip-list or a B+-tree, while they organize their disk components using B+-trees or sorted-string tables (SSTables).
+  [*`NOTE - Here the in-memory component referred to is the memtable. This can be replaced in-place so a basic stucture like B+-tree or skip list can be used. Also
+     The disk components referred to are the L1 through further levels. For these its mentioned that we can use B+-Tree or SS-Table. A concern may arise that how a B+-Tree can be
+     used as these levels should be immutable and B+-Tree uses an inplace algorithm. The idea here is to use the struture of the B+-Tree so that its easy to search in it. Though once this 
+     structure is written out, it is frozen and we should not modify it. So an SS-Table can use any strcure internally, like a sorted flat file or a B+-Tree `*]
 
+-   
 
 
 

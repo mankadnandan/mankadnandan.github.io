@@ -1,0 +1,28 @@
+site_name: Nandan's Computer Systems University
+site_description: Notes on distributed systems, software engineering and system design
+site_author: Nandan Mankad
+site_url: https://mankadnandan.github.io
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
