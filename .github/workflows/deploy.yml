@@ -5,8 +5,7 @@ on:
     branches:
       - main
       - mkdocs-migration
-
-workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
   contents: write
