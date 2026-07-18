@@ -1,1 +1,10 @@
-site_name: My Docs
+site_name: Nandan's Engineering Handbook
+site_description: A living handbook on software engineering, distributed systems, and computer science.
+site_author: Nandan Mankad
+site_url: https://mankadnandan.github.io/
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
